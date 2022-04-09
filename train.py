@@ -35,18 +35,19 @@ if __name__ == '__main__':
             train_loss.backward()
             opt.step()
 
-            if i%5==0:
+            if i%1==0:
                 print(f'{epoch}-{i}-train_loss===>>{train_loss.item()}')
 
-            if i%50==0:
-                torch.save(net.state_dict(),weight_path)
+
 
             _image=image[0]
-            _segment_image=segment_image[0]
-            _out_image=out_image[0]
+            _segment_image=segment_image[0]*255
+            _out_image=out_image[0]*255
 
-            img=torch.stack([_image,_segment_image,_out_image],dim=0)
+            img=torch.stack([_segment_image,_out_image],dim=0)
             save_image(img,f'{save_path}/{i}.png')
-
+        if epoch % 20 == 0:
+            torch.save(net.state_dict(), weight_path)
+            print('save successfully!')
         epoch+=1
 

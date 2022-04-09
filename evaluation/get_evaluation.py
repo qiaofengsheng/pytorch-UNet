@@ -9,10 +9,14 @@ import cv2
 
 # 输入必须为灰度图
 # labels为你的像素值的类别
+from utils import keep_image_size_open
+
+
 def get_miou_recall_precision(label_image, pred_image, labels):
     label = label_image.reshape(-1)
-    pred = label_image.reshape(-1)
+    pred = pred_image.reshape(-1)
     out = confusion_matrix(label, pred, labels=labels)
+    # print(out)
     # TP = out[0][0]
     # FN = out[0][1] + out[0][2]
     # FP = out[1][0] + out[2][0]
@@ -33,4 +37,13 @@ def get_miou_recall_precision(label_image, pred_image, labels):
         iou_temp += TP / (TP + FP + FN)
         recall[i] = TP / (TP + FN)
         precision[i] = TP / (TP + FP)
+    MIOU = iou_temp / len(label)
     return MIOU, recall, precision
+
+if __name__ == '__main__':
+    from PIL import Image
+    label=keep_image_size_open(r'D:\pythonSpace\teach_demo\pytorch-unet\data\SegmentationClass\000019.png')
+    pred=Image.open(r'D:\pythonSpace\teach_demo\pytorch-unet\result\result.png')
+    l,p=np.array(label).astype(int),np.array(pred).astype(int)
+    print(get_miou_recall_precision(l,p,[0,1,2]))
+

@@ -9,7 +9,7 @@ from utils import *
 from data import *
 from torchvision.utils import save_image
 from PIL import Image
-net=UNet().cuda()
+net=UNet(3).cuda()
 
 weights='params/unet.pth'
 if os.path.exists(weights):
@@ -22,14 +22,15 @@ _input=input('please input JPEGImages path:')
 
 img=keep_image_size_open_rgb(_input)
 img_data=transform(img).cuda()
-print(img_data.shape)
 img_data=torch.unsqueeze(img_data,dim=0)
 net.eval()
 out=net(img_data)
+out=torch.argmax(out,dim=1)
 out=torch.squeeze(out,dim=0)
-out=(out*255).permute((1,2,0)).cpu().detach().numpy()
-print(set((out*255).reshape(-1).tolist()))
-
+out=out.unsqueeze(dim=0)
+print(set((out).reshape(-1).tolist()))
+out=(out).permute((1,2,0)).cpu().detach().numpy()
 cv2.imwrite('result/result.png',out)
-
+cv2.imshow('out',out*255.0)
+cv2.waitKey(0)
 

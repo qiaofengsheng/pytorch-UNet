@@ -14,7 +14,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 import json
 
-CLASS_NAMES = ['dog', 'cat']
+CLASS_NAMES = ['horse', 'person']
 
 
 def make_mask(image_dir, save_dir):
@@ -38,8 +38,16 @@ def make_mask(image_dir, save_dir):
         mask.save(os.path.join(save_dir, js.replace('json', 'png')))
 
 
+def vis_label(img):
+    img=Image.open(img)
+    img=np.array(img)
+    print(set(img.reshape(-1).tolist()))
+
+
+
 if __name__ == '__main__':
-    make_mask('image', 'SegmentationClass')
+    # make_mask('image', 'SegmentationClass')
+    vis_label('SegmentationClass/000799.png')
     # img=Image.open('SegmentationClass/000019.png')
     # print(np.array(img).shape)
     # out=np.array(img).reshape(-1)

@@ -2,8 +2,6 @@
 
 #### 介绍
 pytorch搭建自己的unet网络，训练自己的数据集。
-B站视频地址全程带你手撸代码：https://www.bilibili.com/video/BV11341127iK?spm_id_from=333.999.0.0
-
 #### 软件架构
 pythorch
 
@@ -21,5 +19,4 @@ pythorch
 
 
 #### 视频地址
-
 B站：https://www.bilibili.com/video/BV11341127iK?spm_id_from=333.999.0.0

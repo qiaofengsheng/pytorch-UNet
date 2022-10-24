@@ -27,12 +27,9 @@ def get_miou_recall_precision(label_image, pred_image, labels):
     precision = {}
     for i in range(r):
         TP = out[i][i]
-        temp = np.concatenate((out[0:i, :], out[i + 1:, :]), axis=0)
-        sum_one = np.sum(temp, axis=0)
-        FP = sum_one[i]
-        temp2 = np.concatenate((out[:, 0:i], out[:, i + 1:]), axis=1)
-        FN = np.sum(temp2, axis=1)[i]
-        TN = temp2.reshape(-1).sum() - FN
+        FP = out[:,i].sum()-TP
+        FN = out[i,:].sum()-TP
+        TN = out.sum()-TP-FP-FN
         iou_temp += (TP / (TP + FP + FN))
         recall[i] = TP / (TP + FN)
         precision[i] = TP / (TP + FP)

@@ -1,45 +1,68 @@
-'''
-    混淆矩阵
-    Recall、Precision、MIOU计算
-'''
+
 import numpy as np
 from sklearn.metrics import confusion_matrix
 import cv2
 
-# 输入必须为灰度图
-# labels为你的像素值的类别
-from utils import keep_image_size_open
+def keep_image_size_open_label(path, size=(256, 256)):
+    img = Image.open(path)
+    temp = max(img.size)
+    mask = Image.new('P', (temp, temp))
+    mask.paste(img, (0, 0))
+    mask = mask.resize(size)
+    mask = np.array(mask)
+    mask[mask!=255]=0
+    mask[mask==255]=1
+    mask = Image.fromarray(mask)
+    return mask
 
+def keep_image_size_open_predict(path, size=(256, 256)):
+    img = Image.open(path)
+    temp = max(img.size)
+    mask = Image.new('P', (temp, temp))
+    mask.paste(img, (0, 0))
+    mask = mask.resize(size)
+    mask = np.array(mask)
+    mask = Image.fromarray(mask)
+    return mask
 
-def get_miou_recall_precision(label_image, pred_image, labels):
-    label = label_image.reshape(-1)
-    pred = pred_image.reshape(-1)
-    out = confusion_matrix(label, pred, labels=labels)
-    # print(out)
-    # TP = out[0][0]
-    # FN = out[0][1] + out[0][2]
-    # FP = out[1][0] + out[2][0]
-    # TN = out[1][1] + out[1][2] + out[2][1] + out[2][2]
-    # print(TP / (TP + FP + FN))
-    r, l = out.shape
-    iou_temp = 0
-    recall = {}
-    precision = {}
-    for i in range(r):
-        TP = out[i][i]
-        FP = out[:,i].sum()-TP
-        FN = out[i,:].sum()-TP
-        TN = out.sum()-TP-FP-FN
-        iou_temp += (TP / (TP + FP + FN))
-        recall[i] = TP / (TP + FN)
-        precision[i] = TP / (TP + FP)
-    MIOU = iou_temp / len(labels)
-    return MIOU, recall, precision
+def compute_iou(seg_pred, seg_gt, num_classes):
+    ious = []
+    for c in range(num_classes):
+        pred_inds = seg_pred == c
+        target_inds = seg_gt == c
+        intersection = np.logical_and(pred_inds, target_inds).sum()
+        union = np.logical_or(pred_inds, target_inds).sum()
+        if union == 0:
+            ious.append(float('nan'))
+        else:
+            ious.append(float(intersection) / float(union))
+    return ious
 
+def compute_miou(seg_preds, seg_gts, num_classes):
+    ious = []
+    for i in range(len(seg_preds)):
+        ious.append(compute_iou(seg_preds[i], seg_gts[i], num_classes))
+    ious = np.array(ious, dtype=np.float32)
+    miou = np.nanmean(ious, axis=0)
+    return miou
 
 if __name__ == '__main__':
     from PIL import Image
-    label = keep_image_size_open(r'D:\pythonSpace\teach_demo\pytorch-unet\data\SegmentationClass\000799.png')
-    pred = Image.open(r'D:\pythonSpace\teach_demo\pytorch-unet\result\result.png')
-    l, p = np.array(label).astype(int), np.array(pred).astype(int)
-    print(get_miou_recall_precision(l, p, [0, 1, 2]))
+    import os
+
+    label_path = "data/val/SegmentationClass" # 标签的文件夹位置
+
+    predict_path = "data/val/predict" # 预测结果的文件夹位置
+
+    res_miou = []
+    for pred_im in os.listdir(predict_path):
+        label = keep_image_size_open_label(os.path.join(label_path,pred_im))
+        pred = keep_image_size_open_predict(os.path.join(predict_path,pred_im))
+        l, p = np.array(label).astype(int), np.array(pred).astype(int)
+        print(set(l.reshape(-1).tolist()),set(p.reshape(-1).tolist()))
+        miou = compute_miou(p,l,2)
+        res_miou.append(miou)
+    print(np.array(res_miou).mean(axis=0))
+
+
+    
